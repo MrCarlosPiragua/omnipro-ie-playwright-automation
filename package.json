@@ -1,0 +1,36 @@
+{
+  "name": "omnipro-ie-playwright-automation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "pretest": "mkdir -p reports",
+    "test": "cucumber-js --config cucumber.js",
+    "posttest": "node scripts/generate-report.js",
+    "test:headed": "HEADED=true npm run test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MrCarlosPiragua/omnipro-ie-playwright-automation.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "homepage": "https://github.com/MrCarlosPiragua/omnipro-ie-playwright-automation#readme",
+  "devDependencies": {
+    "@cucumber/cucumber": "^12.2.0",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "^24.9.1",
+    "cucumber-html-reporter": "^7.2.0",
+    "multiple-cucumber-html-reporter": "^3.9.3",
+    "playwright": "^1.56.1",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@faker-js/faker": "^10.1.0",
+    "dotenv": "^17.2.3"
+  }
+}

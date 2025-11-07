@@ -1,0 +1,71 @@
+[
+  {
+    "description": "  Para garantizar que los formularios Stage 3 estén configurados correctamente en el entorno de pruebas\n  Como equipo de automatización\n  Queremos navegar a las URLs declaradas en la matriz y verificar que los campos configurados se puedan completar\n  y que el identificador de formulario DEV esté presente.",
+    "elements": [
+      {
+        "description": "",
+        "id": "validar-formularios-stage-3-en-dev;validar-tipo-de-form-en---embed---tipo-3---summer-uni---program-select",
+        "keyword": "Scenario Outline",
+        "line": 459,
+        "name": "Validar tipo de form EN - Embed - Tipo 3 - Summer UNI - Program select",
+        "steps": [
+          {
+            "keyword": "Before",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 711869541
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "Given ",
+            "line": 452,
+            "name": "que selecciono el Tipo Form 'EN - Embed - Tipo 3 - Summer UNI - Program select' y el ID form '1112' para la url 'https://www.pre.thesaurus.ie.edu/ie-summer-school/university/university-summer-program/'",
+            "match": [],
+            "result": {
+              "status": "passed",
+              "duration": 6386073916
+            }
+          },
+          {
+            "arguments": [],
+            "keyword": "When ",
+            "line": 453,
+            "name": "completo los campos configurados para el formulario con idPrograma '90b0cc31-68ad-ef11-b8e8-0022488a207b'",
+            "match": [],
+            "result": {
+              "status": "passed",
+              "duration": 40969415334
+            }
+          },
+          {
+            "keyword": "After",
+            "hidden": true,
+            "result": {
+              "status": "passed",
+              "duration": 246466583
+            }
+          }
+        ],
+        "tags": [
+          {
+            "name": "@Form1112",
+            "line": 450
+          },
+          {
+            "name": "@all",
+            "line": 450
+          }
+        ],
+        "type": "scenario"
+      }
+    ],
+    "id": "validar-formularios-stage-3-en-dev",
+    "line": 1,
+    "keyword": "Feature",
+    "name": "Validar formularios Stage 3 en DEV",
+    "tags": [],
+    "uri": "tests/features/stage3-validacion.feature"
+  }
+]
