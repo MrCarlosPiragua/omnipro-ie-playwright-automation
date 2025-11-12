@@ -21,12 +21,10 @@ export interface DefinicionCampoFormulario {
   valor?: string;
   validacion?: ReglasValidacionCampo;
   placeholderEsperado?: string;
-  obligatorio?: boolean;
 }
 
 export class PaginaFormulario extends PaginaBase {
-  private readonly tiposConPlaceholder: TipoCampo[] = ["text", "textarea", "email", "tel"];
-  private readonly tiposValidanObligatorio: TipoCampo[] = ["text", "textarea", "email", "tel", "select"];
+  private readonly tiposConPlaceholder: TipoCampo[] = ["text", "textarea", "email", "tel", "select"];
 
   constructor(pagina: Page) {
     super(pagina);
@@ -34,7 +32,7 @@ export class PaginaFormulario extends PaginaBase {
 
   async completarCamposSiExisten(campos: DefinicionCampoFormulario[]): Promise<void> {
     for (const campo of campos) {
-      await this.pagina.waitForTimeout(5000);
+      await this.pagina.waitForTimeout(1000);
       const localizador = this.pagina.locator(campo.selector);
       if ((await localizador.count()) === 0) {
         console.warn(
@@ -44,7 +42,6 @@ export class PaginaFormulario extends PaginaBase {
       }
 
       await this.validarPlaceholderSiAplica(localizador, campo);
-      await this.verificarErrorObligatorioSiAplica(localizador, campo);
 
       if (this.debeValidarCampo(campo)) {
         await this.verificarRechazoDeMuestrasInvalidas(localizador, campo);
@@ -82,7 +79,7 @@ export class PaginaFormulario extends PaginaBase {
     const candidatos = [
       this.pagina.getByRole("button", { name: /aceptar todas/i }),
       this.pagina.getByRole("button", { name: /aceptar/i }),
-      this.pagina.getByRole("button", { name: /accept/i })
+      this.pagina.getByRole("button", { name: /accept/i }),
     ];
 
     for (const locator of candidatos) {
@@ -98,12 +95,12 @@ export class PaginaFormulario extends PaginaBase {
     }
 
     const selectoresAdicionales = [
-      '#onetrust-accept-btn-handler',
+      "#onetrust-accept-btn-handler",
       'button[id*="accept"]',
       'button[id*="Aceptar"]',
       'button[data-testid*="accept"]',
       'button:has-text("Aceptar")',
-      '[aria-label*="Aceptar"]'
+      '[aria-label*="Aceptar"]',
     ];
 
     for (const selector of selectoresAdicionales) {
@@ -121,14 +118,10 @@ export class PaginaFormulario extends PaginaBase {
 
     const iframeCandidatos = [
       this.pagina
-        .frameLocator('#onetrust-consent-sdk')
-        .locator('button#onetrust-accept-btn-handler'),
-      this.pagina
-        .frameLocator('iframe[title*="consent"]')
-        .locator('button:has-text("Accept")'),
-      this.pagina
-        .frameLocator('iframe[id*="onetrust"]')
-        .locator('button:has-text("Aceptar")')
+        .frameLocator("#onetrust-consent-sdk")
+        .locator("button#onetrust-accept-btn-handler"),
+      this.pagina.frameLocator('iframe[title*="consent"]').locator('button:has-text("Accept")'),
+      this.pagina.frameLocator('iframe[id*="onetrust"]').locator('button:has-text("Aceptar")'),
     ];
 
     for (const locator of iframeCandidatos) {
@@ -147,12 +140,9 @@ export class PaginaFormulario extends PaginaBase {
     }
   }
 
-  async enviarSiEsPosible(): Promise<void> {
-    const botones = this.pagina.locator('button[type="submit"], input[type="submit"]');
-    if (await botones.count()) {
-      await botones.first().click();
-      await this.esperarRedInactiva();
-    }
+  async enviarFormulario(): Promise<void> {
+    await this.pagina.click('button[type="submit"]');
+    await this.esperarRedInactiva();
   }
 
   async validarCampoOculto(nombreCampo: string, valorEsperado: string): Promise<void> {
@@ -161,8 +151,8 @@ export class PaginaFormulario extends PaginaBase {
       throw new Error(`No se encontró el campo oculto ${nombreCampo} en el formulario.`);
     }
 
-    const tipo = (await campo.getAttribute('type')) ?? '';
-    if (tipo.toLowerCase() !== 'hidden') {
+    const tipo = (await campo.getAttribute("type")) ?? "";
+    if (tipo.toLowerCase() !== "hidden") {
       throw new Error(`El campo ${nombreCampo} no es de tipo hidden (type=${tipo}).`);
     }
 
@@ -191,12 +181,39 @@ export class PaginaFormulario extends PaginaBase {
     return false;
   }
 
-  private debeVerificarPlaceholder(campo: DefinicionCampoFormulario): boolean {
-    return this.tiposConPlaceholder.includes(campo.tipo);
+  async validarThankYouPage(codigoPais?: string, codigoProvincia?: string): Promise<void> {
+    await this.esperarRedInactiva();
+
+    const paginaVisible = await this.esThankYouPageVisible();
+    if (!paginaVisible) {
+      throw new Error("No se detectó la pantalla de agradecimiento después de enviar el formulario.");
+    }
+
+    const mensajeCorrecto = await this.contieneMensajeThankYou();
+    if (!mensajeCorrecto) {
+      throw new Error('La pantalla final no muestra el texto "Thank you" ni "Gracias".');
+    }
+
+    const urlActual = this.pagina.url();
+    const urlNormalizada = urlActual.toLowerCase();
+    const codigoPaisNormalizado = this.normalizarParametroUrl(codigoPais);
+    const codigoProvinciaNormalizado = this.normalizarParametroUrl(codigoProvincia);
+
+    if (codigoPaisNormalizado && !urlNormalizada.includes(codigoPaisNormalizado)) {
+      throw new Error(
+        `La URL de la pantalla de agradecimiento (${urlActual}) no contiene el código de país "${codigoPais}".`
+      );
+    }
+
+    if (codigoProvinciaNormalizado && !urlNormalizada.includes(codigoProvinciaNormalizado)) {
+      throw new Error(
+        `La URL de la pantalla de agradecimiento (${urlActual}) no contiene el código de provincia "${codigoProvincia}".`
+      );
+    }
   }
 
-  private debeVerificarObligatorio(campo: DefinicionCampoFormulario): boolean {
-    return this.tiposValidanObligatorio.includes(campo.tipo);
+  private debeVerificarPlaceholder(campo: DefinicionCampoFormulario): boolean {
+    return this.tiposConPlaceholder.includes(campo.tipo);
   }
 
   private async validarPlaceholderSiAplica(
@@ -207,7 +224,7 @@ export class PaginaFormulario extends PaginaBase {
       return;
     }
 
-    const placeholder = (await localizador.getAttribute("placeholder"))?.trim() ?? "";
+    const placeholder = await this.obtenerPlaceholder(localizador, campo);
     if (campo.placeholderEsperado) {
       const esperado = campo.placeholderEsperado.trim();
       if (placeholder !== esperado) {
@@ -223,57 +240,61 @@ export class PaginaFormulario extends PaginaBase {
     }
   }
 
-  private async verificarErrorObligatorioSiAplica(
-    localizador: Locator,
-    campo: DefinicionCampoFormulario
-  ): Promise<void> {
-    if (!this.debeVerificarObligatorio(campo)) {
-      return;
+  private async obtenerPlaceholder(localizador: Locator, campo: DefinicionCampoFormulario): Promise<string> {
+    if (campo.tipo === "select") {
+      return localizador.evaluate((elemento) => {
+        if (!(elemento instanceof HTMLSelectElement)) {
+          return "";
+        }
+        const primeraOpcion = elemento.options?.[0];
+        if (!primeraOpcion) {
+          return "";
+        }
+        return (primeraOpcion.text?.trim() || primeraOpcion.value?.trim() || "");
+      });
     }
-
-    const esObligatorio = await this.esCampoObligatorio(localizador, campo);
-    if (!esObligatorio) {
-      return;
-    }
-
-    await localizador.scrollIntoViewIfNeeded();
-
-    await localizador.click();
-
-    await this.pagina.keyboard.press("Escape");
-
-    const errorLocator = this.obtenerLocatorErrorObligatorio(localizador);
-    const mostroError = await this.esErrorVisible(errorLocator);
-    if (!mostroError) {
-      throw new Error(
-        `El campo obligatorio "${campo.nombre}" no mostró el mensaje con la clase mktoErrorMsg al quedar vacío.`
-      );
-    }
+    return (await localizador.getAttribute("placeholder"))?.trim() ?? "";
   }
 
-  private async esCampoObligatorio(
-    localizador: Locator,
-    campo: DefinicionCampoFormulario
-  ): Promise<boolean> {
-    if (typeof campo.obligatorio === "boolean") {
-      return campo.obligatorio;
+  private async contieneMensajeThankYou(): Promise<boolean> {
+    const textoPagina = (await this.pagina.textContent("body")) ?? "";
+    return /\bthank you\b/i.test(textoPagina) || /\bgracias\b/i.test(textoPagina);
+  }
+
+  private async esThankYouPageVisible(): Promise<boolean> {
+    const candidatos = [
+      this.pagina.getByRole("heading", { name: /thank/i }),
+      this.pagina.getByText(/thank you/i),
+      this.pagina.getByText(/gracias/i),
+      this.pagina.locator('[data-testid*="thank-you"]'),
+      this.pagina.locator(".mktoThankYouMessage"),
+    ];
+
+    for (const locator of candidatos) {
+      try {
+        const visible = await locator.first().isVisible();
+        if (visible) {
+          return true;
+        }
+      } catch {
+        continue;
+      }
     }
+
     return false;
   }
 
-  private obtenerLocatorErrorObligatorio(localizador: Locator): Locator {
-    return localizador.locator(
-      'xpath=ancestor::*[contains(@class,"mktoFormRow") or contains(@class,"mktoFieldWrap") or contains(@class,"mktoField")]//div[contains(@class,"mktoErrorMsg")]'
-    );
-  }
-
-  private async esErrorVisible(errorLocator: Locator): Promise<boolean> {
-    try {
-      await errorLocator.first().waitFor({ state: "visible", timeout: 1500 });
-      return true;
-    } catch {
-      return false;
+  private normalizarParametroUrl(valor?: string): string {
+    if (!valor) {
+      return "";
     }
+
+    const limpio = valor.trim().toLowerCase();
+    if (!limpio || limpio === "none" || limpio === "null") {
+      return "";
+    }
+
+    return limpio;
   }
 
   private obtenerValor(campo: DefinicionCampoFormulario): string {

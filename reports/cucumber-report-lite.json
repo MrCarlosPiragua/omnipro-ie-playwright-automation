@@ -4,39 +4,39 @@
     "elements": [
       {
         "description": "",
-        "id": "validar-formularios-stage-3-en-dev;validar-tipo-de-form-en---embed---tipo-3---summer-uni---program-select",
+        "id": "validar-formularios-stage-3-en-dev;validar-tipo-de-form-en---embed---tipo-3---bachelor---program-select",
         "keyword": "Scenario Outline",
-        "line": 459,
-        "name": "Validar tipo de form EN - Embed - Tipo 3 - Summer UNI - Program select",
+        "line": 16,
+        "name": "Validar tipo de form EN - Embed - Tipo 3 - Bachelor - Program select",
         "steps": [
           {
             "keyword": "Before",
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 711869541
+              "duration": 613880625
             }
           },
           {
             "arguments": [],
             "keyword": "Given ",
-            "line": 452,
-            "name": "que selecciono el Tipo Form 'EN - Embed - Tipo 3 - Summer UNI - Program select' y el ID form '1112' para la url 'https://www.pre.thesaurus.ie.edu/ie-summer-school/university/university-summer-program/'",
+            "line": 9,
+            "name": "que selecciono el Tipo Form 'EN - Embed - Tipo 3 - Bachelor - Program select' y el ID form '1040' para la url 'https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-applied-mathematics/'",
             "match": [],
             "result": {
               "status": "passed",
-              "duration": 6386073916
+              "duration": 4524110541
             }
           },
           {
             "arguments": [],
             "keyword": "When ",
-            "line": 453,
-            "name": "completo los campos configurados para el formulario con idPrograma '90b0cc31-68ad-ef11-b8e8-0022488a207b'",
+            "line": 10,
+            "name": "completo los campos configurados para el formulario con idPrograma 'edacc7fc-8b17-eb11-a813-000d3a2cbe51'",
             "match": [],
             "result": {
               "status": "passed",
-              "duration": 40969415334
+              "duration": 14398108541
             }
           },
           {
@@ -44,18 +44,18 @@
             "hidden": true,
             "result": {
               "status": "passed",
-              "duration": 246466583
+              "duration": 267062332
             }
           }
         ],
         "tags": [
           {
-            "name": "@Form1112",
-            "line": 450
+            "name": "@Form1040",
+            "line": 7
           },
           {
             "name": "@all",
-            "line": 450
+            "line": 7
           }
         ],
         "type": "scenario"

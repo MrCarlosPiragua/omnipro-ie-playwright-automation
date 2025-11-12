@@ -1,5 +1,4 @@
 import { Given, Then, When } from "@cucumber/cucumber";
-import { expect } from "@playwright/test";
 import { obtenerCampos } from "../config/forms-config";
 import { MundoPersonalizado, RegistroEscenario } from "../support/world";
 
@@ -66,13 +65,17 @@ When(
   }
 );
 
-When("envío el formulario si existe un botón de envío", async function (this: MundoPersonalizado) {
-  await this.paginaFormulario?.enviarSiEsPosible();
+When("envío el formulario", async function (this: MundoPersonalizado) {
+  await this.paginaFormulario?.enviarFormulario();
 });
 
-Then("el formulario debe exponer el ID DEV configurado", async function (this: MundoPersonalizado) {
-  const visible = await this.paginaFormulario?.contieneIdFormulario(
-    this.registroActual?.idFormulario
-  );
-  expect(visible, "El ID del formulario DEV no está presente en el DOM").toBeTruthy();
-});
+Then(
+  "podre ver el Thank you page con country {string} y province {string}",
+  async function (this: MundoPersonalizado, codigoPais: string, codigoProvincia: string) {
+    if (!this.paginaFormulario) {
+      throw new Error("La página de formulario no está disponible.");
+    }
+
+    await this.paginaFormulario.validarThankYouPage(codigoPais, codigoProvincia);
+  }
+);

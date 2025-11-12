@@ -8,12 +8,39 @@ Feature: Validar formularios Stage 3 en DEV
   Scenario Outline: Validar tipo de form EN - Embed - Tipo 3 - Bachelor - Program select
     Given que selecciono el Tipo Form 'EN - Embed - Tipo 3 - Bachelor - Program select' y el ID form '1040' para la url '<url>'
     When completo los campos configurados para el formulario con idPrograma '<idProgramaCampoOculto>'
-    ##And envío el formulario si existe un botón de envío
-    ##Then el formulario debe exponer el ID DEV configurado
+    And envío el formulario
+    Then podre ver el Thank you page con country '<countryCode>' y province '<provinceCode>'
 
     Examples:
       | idProgramaCampoOculto                | url                                                                                                                                                        |
       | edacc7fc-8b17-eb11-a813-000d3a2cbe51 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-applied-mathematics/                                                        |
+      | f22bb741-ec37-e811-8137-70106faad7c1 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-architectural-studies/                                                      |
+      | 7b566b72-219d-e711-8110-3863bb359f00 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-in-behavior-and-social-sciences/                                            |
+      | 8f35f806-c14c-ea11-a812-000d3a49074b | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-business-administration/                                                    |
+      | d81b3c2f-1766-f011-bec3-7c1e525d4e1c | https://www.pre.thesaurus.ie.edu/university/global-bachelor-in-business-administration/                                                                    |
+      | 7cac63f5-2b92-e711-810f-3863bb35cfc0 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-communication/                                                              |
+      | 41ca5688-0d86-e911-a95c-000d3a454330 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-computer-science-artificial-intelligence/                                   |
+      | 5be32ebf-d980-e711-810c-3863bb359f00 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-data-business-analytics/                                                    |
+      | 352fa54b-0387-e611-9781-06dc7e179538 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-design/                                                                     |
+      | a34d8de1-5eb7-e811-8148-70106fa7b0b1 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-economics/                                                                  |
+      | 21848aca-0e08-ed11-82e5-000d3abb76b5 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-environmental-sciences-sustainability/                                      |
+      | 0f3b09f9-9b20-ee11-9967-000d3a205e3b | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-in-fashion-design/                                                          |
+      | 018617e3-b620-ee11-9967-6045bd8968e7 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-in-humanities/                                                              |
+      | 3eac079c-4706-e111-8310-005056b42592 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-international-relations/                                                    |
+      | 2b0ba0c3-6c8f-ea11-a811-000d3a2cbe51 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-laws/                                                                       |
+      | e7700394-48f6-e911-a813-000d3a2cbc56 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-philosophy-politics-law-economics-pple/                                     |
+      | a9e19f6c-b92f-ef11-840a-6045bd9b60bc | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/bachelor-political-science/                                                          |
+      | a2958389-b6cb-e811-814b-70106fa7b0b1 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-business-administration-data-and-business-analytics/                  |
+      | edc91515-c4ba-ea11-a812-000d3a252d60 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-business-administration-design/                                       |
+      | 08ce9b5f-6521-ee11-9967-000d3aaba351 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-business-administration-fashion-design/                               |
+      | b5e9bbce-7b21-ee11-9967-000d3aaba351 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-business-administration-bachelor-in-humanities/                       |
+      | ba6229bb-7799-e911-a966-000d3a454f67 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-business-administration-international-relations/                         |
+      | d9d05e75-7d8f-ea11-a811-000d3a2cbc56 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-bachelor-business-administration-laws/                                   |
+      | bac27810-4646-ee11-be6e-0022488011d6 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-business-administration-computer-science-and-artificial-intelligence/ |
+      | 6a12c862-053d-ef11-8409-6045bd9e3e8c | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-business-administration-bachelor-political-science/                   |
+      | bd9a93de-5546-ee11-be6e-002248801012 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-economics-applied-mathematics/                                        |
+      | 529a1f0b-42d6-ea11-a813-000d3abb53d2 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-in-economics-international-relations/                                    |
+      | fb74e671-778f-ea11-a811-000d3a2cbc56 | https://www.pre.thesaurus.ie.edu/university/studies/academic-programs/dual-degree-bachelor-laws-international-relations/                                   |
 
   @Form1041 @all
   Scenario Outline: Validar tipo de form ES - Embed - Tipo 3 - Bachelor - Program select
@@ -423,7 +450,7 @@ Feature: Validar formularios Stage 3 en DEV
   @Form1112 @all
   Scenario Outline: Validar tipo de form EN - Embed - Tipo 3 - Summer UNI - Program select
     Given que selecciono el Tipo Form 'EN - Embed - Tipo 3 - Summer UNI - Program select' y el ID form '1112' para la url '<url>'
-    When completo los campos configurados para el formulario con idPrograma '<idProgramaCampoOculto>'
+   When completo los campos configurados para el formulario con idPrograma '<idProgramaCampoOculto>'
     #And envío el formulario si existe un botón de envío
     #Then el formulario debe exponer el ID DEV configurado
 
