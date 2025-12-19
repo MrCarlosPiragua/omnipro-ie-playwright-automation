@@ -25,6 +25,7 @@ export interface DefinicionCampoFormulario {
 
 export class PaginaFormulario extends PaginaBase {
   private readonly tiposConPlaceholder: TipoCampo[] = ["text", "textarea", "email", "tel", "select"];
+  private readonly esperaCookiesMs = 10000;
 
   constructor(pagina: Page) {
     super(pagina);
@@ -32,7 +33,7 @@ export class PaginaFormulario extends PaginaBase {
 
   async completarCamposSiExisten(campos: DefinicionCampoFormulario[]): Promise<void> {
     for (const campo of campos) {
-      await this.pagina.waitForTimeout(1000);
+      await this.pagina.waitForTimeout(200);
       const localizador = this.pagina.locator(campo.selector);
       if ((await localizador.count()) === 0) {
         console.warn(
@@ -76,6 +77,17 @@ export class PaginaFormulario extends PaginaBase {
   }
 
   async aceptarCookiesSiAparece(): Promise<void> {
+    const inicio = Date.now();
+    while (Date.now() - inicio < this.esperaCookiesMs) {
+      const aceptado = await this.intentarAceptarCookies();
+      if (aceptado) {
+        return;
+      }
+      await this.pagina.waitForTimeout(500);
+    }
+  }
+
+  private async intentarAceptarCookies(): Promise<boolean> {
     const candidatos = [
       this.pagina.getByRole("button", { name: /aceptar todas/i }),
       this.pagina.getByRole("button", { name: /aceptar/i }),
@@ -87,7 +99,7 @@ export class PaginaFormulario extends PaginaBase {
         try {
           await locator.first().click({ timeout: 2000 });
           await this.pagina.waitForTimeout(300);
-          return;
+          return true;
         } catch (error) {
           continue;
         }
@@ -109,7 +121,7 @@ export class PaginaFormulario extends PaginaBase {
         try {
           await boton.click({ timeout: 2000 });
           await this.pagina.waitForTimeout(300);
-          return;
+          return true;
         } catch (error) {
           continue;
         }
@@ -133,35 +145,52 @@ export class PaginaFormulario extends PaginaBase {
 
         await locator.first().click({ timeout: 3000 });
         await this.pagina.waitForTimeout(300);
-        return;
+        return true;
       } catch (error) {
         continue;
       }
     }
+
+    return false;
   }
 
   async enviarFormulario(): Promise<void> {
     await this.pagina.click('button[type="submit"]');
-    await this.esperarRedInactiva();
   }
 
   async validarCampoOculto(nombreCampo: string, valorEsperado: string): Promise<void> {
+    const esperado = valorEsperado.trim();
     const campo = this.pagina.locator(`input[name="${nombreCampo}"]`).first();
-    if (!(await campo.count())) {
-      throw new Error(`No se encontró el campo oculto ${nombreCampo} en el formulario.`);
+    const detalles: string[] = [];
+
+    if (await campo.count()) {
+      const tipo = (await campo.getAttribute("type")) ?? "";
+      if (tipo.toLowerCase() !== "hidden") {
+        detalles.push(`Campo ${nombreCampo} encontrado pero no es hidden (type=${tipo}).`);
+      } else {
+        const valorActual = (await campo.inputValue()).trim();
+        if (valorActual === esperado) {
+          return;
+        }
+        detalles.push(`Campo ${nombreCampo} tiene "${valorActual}" en vez de "${esperado}".`);
+      }
+    } else {
+      detalles.push(`No se encontró input[name="${nombreCampo}"].`);
     }
 
-    const tipo = (await campo.getAttribute("type")) ?? "";
-    if (tipo.toLowerCase() !== "hidden") {
-      throw new Error(`El campo ${nombreCampo} no es de tipo hidden (type=${tipo}).`);
+    // Fallback: algunos formularios exponen el id de programa en data-program-id del form.
+    const formConPrograma = this.pagina.locator('form[data-program-id]').first();
+    if (await formConPrograma.count()) {
+      const dataProgramId = (await formConPrograma.getAttribute("data-program-id"))?.trim() ?? "";
+      if (dataProgramId === esperado) {
+        return;
+      }
+      detalles.push(`data-program-id="${dataProgramId}" no coincide con "${esperado}".`);
+    } else {
+      detalles.push("No se encontró form con data-program-id.");
     }
 
-    const valorActual = (await campo.inputValue()).trim();
-    if (valorActual !== valorEsperado.trim()) {
-      throw new Error(
-        `El campo oculto ${nombreCampo} tiene el valor ${valorActual} y se esperaba ${valorEsperado}.`
-      );
-    }
+    throw new Error(`No se encontró el valor de programa esperado. Detalles: ${detalles.join(" ")}`);
   }
 
   async contieneIdFormulario(idFormulario?: string): Promise<boolean> {
@@ -182,34 +211,23 @@ export class PaginaFormulario extends PaginaBase {
   }
 
   async validarThankYouPage(codigoPais?: string, codigoProvincia?: string): Promise<void> {
-    await this.esperarRedInactiva();
+    await this.esperarTransicionThankYou();
 
     const paginaVisible = await this.esThankYouPageVisible();
     if (!paginaVisible) {
       throw new Error("No se detectó la pantalla de agradecimiento después de enviar el formulario.");
     }
 
-    const mensajeCorrecto = await this.contieneMensajeThankYou();
-    if (!mensajeCorrecto) {
-      throw new Error('La pantalla final no muestra el texto "Thank you" ni "Gracias".');
-    }
+    await this.validarMensajeThankYouInteres();
 
     const urlActual = this.pagina.url();
-    const urlNormalizada = urlActual.toLowerCase();
     const codigoPaisNormalizado = this.normalizarParametroUrl(codigoPais);
     const codigoProvinciaNormalizado = this.normalizarParametroUrl(codigoProvincia);
 
-    if (codigoPaisNormalizado && !urlNormalizada.includes(codigoPaisNormalizado)) {
-      throw new Error(
-        `La URL de la pantalla de agradecimiento (${urlActual}) no contiene el código de país "${codigoPais}".`
-      );
-    }
-
-    if (codigoProvinciaNormalizado && !urlNormalizada.includes(codigoProvinciaNormalizado)) {
-      throw new Error(
-        `La URL de la pantalla de agradecimiento (${urlActual}) no contiene el código de provincia "${codigoProvincia}".`
-      );
-    }
+    this.validarParametrosThankYou(urlActual, {
+      country: codigoPaisNormalizado,
+      province: codigoProvinciaNormalizado,
+    });
   }
 
   private debeVerificarPlaceholder(campo: DefinicionCampoFormulario): boolean {
@@ -257,8 +275,8 @@ export class PaginaFormulario extends PaginaBase {
   }
 
   private async contieneMensajeThankYou(): Promise<boolean> {
-    const textoPagina = (await this.pagina.textContent("body")) ?? "";
-    return /\bthank you\b/i.test(textoPagina) || /\bgracias\b/i.test(textoPagina);
+    const textoPagina = await this.obtenerTextoPaginaNormalizado();
+    return textoPagina.includes("thank you") || textoPagina.includes("gracias");
   }
 
   private async esThankYouPageVisible(): Promise<boolean> {
@@ -282,6 +300,95 @@ export class PaginaFormulario extends PaginaBase {
     }
 
     return false;
+  }
+
+  private async validarMensajeThankYouInteres(): Promise<void> {
+    const textoPagina = await this.obtenerTextoPaginaNormalizado();
+    const tieneThankYou = textoPagina.includes("thank you");
+    const tieneInteres = /thank you\s*for your interest/.test(textoPagina);
+
+    if (tieneThankYou && tieneInteres) {
+      return;
+    }
+
+    if (tieneThankYou) {
+      throw new Error('La pantalla de agradecimiento no mostró el texto "Thank you for your interest!".');
+    }
+
+    throw new Error('La pantalla final no muestra "Thank you".');
+  }
+
+  private async obtenerTextoPaginaNormalizado(): Promise<string> {
+    const textoPagina = (await this.pagina.textContent("body")) ?? "";
+    return textoPagina.replace(/\s+/g, " ").trim().toLowerCase();
+  }
+
+  private async esperarSelectorThankYou(): Promise<void> {
+    const selectorMensaje =
+      "#container-c1ce155993 > div > div.IE-TYP-Header.aem-GridColumn.aem-GridColumn--default--12 > section > div.section-bottom.text-white.d-flex.flex-column.justify-content-center.align-items-center.text-center > h1 > p:nth-child(1)";
+    try {
+      await this.pagina.waitForSelector(selectorMensaje, { timeout: 15000 });
+    } catch {
+      // si no aparece ese selector específico, continuamos con las demás validaciones
+    }
+  }
+
+  private async esperarTransicionThankYou(): Promise<void> {
+    const urlInicial = this.pagina.url();
+    const urlInicialLower = urlInicial.toLowerCase();
+    const selectorMensaje =
+      "#container-c1ce155993 > div > div.IE-TYP-Header.aem-GridColumn.aem-GridColumn--default--12 > section > div.section-bottom.text-white.d-flex.flex-column.justify-content-center.align-items-center.text-center > h1 > p:nth-child(1)";
+
+    const esperaUrl = this.pagina.waitForURL(
+      (u) => {
+        const actual = typeof u === "string" ? u : u.toString();
+        const lower = actual.toLowerCase();
+        return lower !== urlInicialLower || /thank|typ/.test(lower);
+      },
+      { timeout: 20000 }
+    );
+    const esperaSelector = this.pagina.waitForSelector(selectorMensaje, { timeout: 20000 });
+
+    try {
+      await Promise.race([esperaUrl, esperaSelector]);
+    } catch {
+      // Si ninguno dispara, continuamos a las validaciones siguientes para dar feedback claro.
+    }
+  }
+
+  private validarParametrosThankYou(
+    urlActual: string,
+    esperado: { country?: string; province?: string }
+  ): void {
+    const normalizada = urlActual.toLowerCase();
+    let searchParams: URLSearchParams | undefined;
+    try {
+      const parsed = new URL(urlActual);
+      searchParams = parsed.searchParams;
+    } catch {
+      /* ignore parse errors and fallback to substring search */
+    }
+
+    const validarParam = (nombre: "country" | "province", valor?: string) => {
+      if (!valor) return;
+
+      if (searchParams) {
+        const actual = (searchParams.get(nombre) ?? "").toLowerCase();
+        if (actual === valor) {
+          return;
+        }
+        throw new Error(`El parámetro ${nombre} en la URL es "${actual}" y se esperaba "${valor}".`);
+      }
+
+      if (!normalizada.includes(`${nombre}=${valor}`)) {
+        throw new Error(
+          `La URL de la pantalla de agradecimiento (${urlActual}) no contiene el parámetro ${nombre}="${valor}".`
+        );
+      }
+    };
+
+    validarParam("country", esperado.country);
+    validarParam("province", esperado.province);
   }
 
   private normalizarParametroUrl(valor?: string): string {

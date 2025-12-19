@@ -14,6 +14,11 @@ Given(
     idFormulario = idFormulario.trim();
     url = url.trim();
 
+    const urlNormalizada = url.toLowerCase();
+    if (!url || urlNormalizada === "none" || urlNormalizada === "null" || urlNormalizada === "ninguno") {
+      throw new Error("El escenario no proporcionó una URL válida en el Example.");
+    }
+
     const registroPreparado: RegistroEscenario = {
       tipoFormulario,
       idFormulario,
@@ -41,12 +46,12 @@ When(
     }
 
     const valorOculto = idProgramaCampoOculto?.trim();
-    if (
-      valorOculto &&
-      valorOculto.toLowerCase() !== 'none' &&
-      valorOculto.toLowerCase() !== 'null' &&
-      this.paginaFormulario
-    ) {
+    const normalizado = valorOculto?.toLowerCase() ?? "";
+    if (!valorOculto || ["none", "null", "ninguno"].includes(normalizado)) {
+      throw new Error("El Example no proporcionó un idProgramaCampoOculto válido.");
+    }
+
+    if (this.paginaFormulario) {
       await this.paginaFormulario.validarCampoOculto('ie_programmarketoid', valorOculto);
     }
 
@@ -75,7 +80,6 @@ Then(
     if (!this.paginaFormulario) {
       throw new Error("La página de formulario no está disponible.");
     }
-
     await this.paginaFormulario.validarThankYouPage(codigoPais, codigoProvincia);
   }
 );

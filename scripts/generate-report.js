@@ -40,7 +40,6 @@ try {
 
 const reportPath = path.join(reportsDir, "html");
 const simpleReportPath = path.join(reportsDir, "cucumber-report.html");
-const liteJsonReport = path.join(reportsDir, "cucumber-report-lite.json");
 
 const metadata = {
   browser: {
@@ -63,97 +62,15 @@ const customData = {
   ],
 };
 
-const truncate = (text, maxLength) => {
-  if (typeof text !== "string") {
-    return text;
-  }
-
-  return text.length > maxLength ? `${text.slice(0, maxLength)}…` : text;
-};
-
-const sanitizeEmbeddables = (items = []) =>
-  items.map((item) => {
-    const sanitized = { ...item };
-    if (sanitized.embeddings) {
-      delete sanitized.embeddings;
-    }
-    if (sanitized.text) {
-      sanitized.text = truncate(sanitized.text, 2000);
-    }
-    if (sanitized.match) {
-      sanitized.match = sanitizeEmbeddables(Array.isArray(sanitized.match) ? sanitized.match : []);
-    }
-    if (sanitized.result?.error) {
-      sanitized.result = {
-        ...sanitized.result,
-        error: truncate(sanitized.result.error, 4000),
-      };
-    }
-
-    return sanitized;
-  });
-
-const sanitizeFeatures = (features = []) =>
-  features.map((feature) => {
-    const sanitizedFeature = { ...feature };
-    if (sanitizedFeature.elements) {
-      sanitizedFeature.elements = sanitizedFeature.elements.map((element) => {
-        const sanitizedElement = { ...element };
-        if (sanitizedElement.steps) {
-          sanitizedElement.steps = sanitizeEmbeddables(sanitizedElement.steps);
-        }
-        if (sanitizedElement.before) {
-          sanitizedElement.before = sanitizeEmbeddables(sanitizedElement.before);
-        }
-        if (sanitizedElement.after) {
-          sanitizedElement.after = sanitizeEmbeddables(sanitizedElement.after);
-        }
-
-        return sanitizedElement;
-      });
-    }
-
-    return sanitizedFeature;
-  });
-
-try {
-  const sanitized = sanitizeFeatures(parsed);
-  fs.writeFileSync(liteJsonReport, JSON.stringify(sanitized, null, 2), "utf8");
-} catch (error) {
-  console.warn("Failed to create lite JSON report. Falling back to original JSON.", error);
-}
-
 reporter.generate({
   jsonDir: reportsDir,
   reportPath,
   reportName: "Omnipro IE Reporte de Automatización",
   pageTitle: "Omnipro IE Reporte de Automatización",
-  displayDuration: true,
-  hideMetadata: false,
-  metadata,
-  customData,
+displayDuration: true,
+hideMetadata: false,
+metadata,
+customData,
 });
 
 console.log(`El reporte HTML se ha generado en ${path.join(reportPath, "index.html")}`);
-
-const jsonForSimpleReport = fs.existsSync(liteJsonReport) ? liteJsonReport : jsonReport;
-
-cucumberHtmlReporter.generate({
-  theme: "bootstrap",
-  jsonFile: jsonForSimpleReport,
-  output: simpleReportPath,
-  reportSuiteAsScenarios: true,
-  scenarioTimestamp: true,
-  storeScreenshots: false,
-  launchReport: false,
-  metadata: {
-    "Browser": `${metadata.browser.name} (${metadata.browser.version})`,
-    "Device": metadata.device,
-    "Platform": `${metadata.platform.name} ${metadata.platform.version}`,
-    "Headless": customData.data.find((item) => item.label === "Modo headless")?.value ?? "Desconocido",
-    "Ambiente": customData.data.find((item) => item.label === "Ambiente")?.value ?? "local",
-  },
-  brandTitle: "Omnipro IE Resultado individual",
-});
-
-console.log(`Reporte individual generado en ${simpleReportPath}`);

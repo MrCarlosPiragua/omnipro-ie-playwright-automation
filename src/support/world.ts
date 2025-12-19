@@ -53,7 +53,24 @@ class MundoIE extends World implements MundoPersonalizado {
     if (!this.pagina) {
       throw new Error('La página de Playwright no está inicializada.');
     }
-    await this.pagina.goto(url, { waitUntil: 'networkidle' });
+    await this.pagina.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+
+    // Acepta cookies en cuanto el DOM está disponible para permitir que el resto de la página termine de cargar.
+    await this.paginaFormulario?.aceptarCookiesSiAparece();
+
+    try {
+      await this.pagina.waitForLoadState('load', { timeout: 7000 });
+    } catch {
+      /* ignore load flakiness */
+    }
+
+    // Algunas páginas mantienen conexiones abiertas (analytics, chat, etc.), por lo que esperar a
+    // "networkidle" puede agotar el timeout. Intentamos ese estado brevemente sin fallar la prueba.
+    try {
+      await this.pagina.waitForLoadState('networkidle', { timeout: 5000 });
+    } catch {
+      /* ignore network idle flakiness */
+    }
   }
 }
 
