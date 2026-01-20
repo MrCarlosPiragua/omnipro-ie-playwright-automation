@@ -411,9 +411,9 @@ export class PaginaFormulario extends PaginaBase {
 
     switch (campo.tipo) {
       case "email":
-        return faker.internet.email({ provider: "example.com" });
+        return "carlos.piragua+heraprueba@omni.pro";
       case "tel":
-        return `+34${faker.string.numeric(9)}`;
+        return `+57${faker.string.numeric(9)}`;
       case "textarea":
         return faker.lorem.sentence(6);
       default:
